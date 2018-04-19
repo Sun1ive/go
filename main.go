@@ -1,65 +1,61 @@
 package main
 
 import (
-	"fmt"
+	// "encoding/json"
+	"log"
+	"net/http"
+	// "math/rand"
+	// "strconv"
+	"github.com/gorilla/mux"
 )
-
-// func main() {
-// 	var a = 3
-// 	fmt.Println("my first var in go", a)
-// }
-
-func main() {
-	// указатель на область в памяти
-	// a := new(int);
-	// выводим в консоль значение из памяти
-	// fmt.Println(*a)
-
-	//
-	// var a = 1
-	// ссылка на адресс, тоже самое что и указатель созданый вручную
-	// fmt.Println(&a)
-
-	// fmt.Println(myFunction(33, 22))
-
-	myFunc()
+// Book Struct // Model // interface ? // class ?
+type Book struct {
+	ID string `json:"id"`
+	Isbn string `json:"isbn"`
+	Title string `json:"title"`
+	Author *Author `json:"author"`
 }
 
-// func myFunction(a, b int) (int, int) {
-// 	return b, a
-// }
+// Author struct
+type Author struct {
+	firstName string `json:"firstname"`
+	lastName string `json:"lastname"`
+}
 
-// 1й способ создать массив
-// func myFunc() {
-// 	var a = []string{"hello", "world"}
-// 	fmt.Println(a)
-// }
+// get all books
+func getBooks(res http.ResponseWriter, req *http.Request)  {
+	
+}
+// get book
+func getBook(res http.ResponseWriter, req *http.Request)  {
+	
+}
+// createBook
+func createBook(res http.ResponseWriter, req *http.Request)  {
+	
+}
+// edit book
+func updateBook(res http.ResponseWriter, req *http.Request)  {
+	
+}
+// delete book
+func deleteBook(res http.ResponseWriter, req *http.Request)  {
+	
+}
 
-// второй способ создать массив
-// func myFunc() {
-// 	var arr = make([]string, 5)
-// 	fmt.Print(arr)
-// }
+func main() {
+	// init router
+	r := mux.NewRouter()
 
-// добавить элементы в массив => append
-// func myFunc() {
-// 	var arr = make([]uint, 5)
-// 	arr = append(arr, 5, 6, 7, 8)
-// 	fmt.Println(arr)
-// }
+	// create our route handlers endpoints
 
-// for loop
-// func myFunc() {
-// 	var arr = []uint{1, 2, 3, 4, 5, 6, 7, 10}
-// 	for i := 0; i < len(arr); i++ {
-// 		fmt.Println(arr[i])
-// 	}
-// }
+	r.HandleFunc("/api/books", getBooks).Methods("GET")
+	r.HandleFunc("/api/books/{id}", getBook).Methods("GET")
+	r.HandleFunc("/api/books", createBook).Methods("POST")
+	r.HandleFunc("/api/books/{id}", updateBook).Methods("PUT")
+	r.HandleFunc("/api/books/{id}", deleteBook).Methods("DELETE")
 
-// another iterator
-func myFunc() {
-	var arr = []uint{1, 2, 3, 4, 5, 6, 7, 10}
-	for _, value := range arr {
-		fmt.Println(value)
-	}
+	
+	log.Fatal(http.ListenAndServe(":8000", r))
+
 }
