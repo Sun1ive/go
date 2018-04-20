@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"net/http"
 	"math/rand"
+	"net/http"
 	"strconv"
+
 	"github.com/gorilla/mux"
 )
 
@@ -65,12 +66,33 @@ func createBook(res http.ResponseWriter, req *http.Request) {
 
 // edit book
 func updateBook(res http.ResponseWriter, req *http.Request) {
-
+	setHeaders(res)
+	params := mux.Vars(req)
+	for index, item := range books {
+		if item.ID == params["id"] {
+			books = append(books[:index], books[index+1:]...)
+			var book Book
+			_ = json.NewDecoder(req.Body).Decode(&book)
+			book.ID = params["id"]
+			books = append(books, book)
+			json.NewEncoder(res).Encode(book)
+			return
+		}
+	}
+	json.NewEncoder(res).Encode(books)
 }
 
 // delete book
 func deleteBook(res http.ResponseWriter, req *http.Request) {
-
+	setHeaders(res)
+	params := mux.Vars(req)
+	for index, item := range books {
+		if item.ID == params["id"] {
+			books = append(books[:index], books[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(res).Encode(books)
 }
 
 func main() {
@@ -89,6 +111,6 @@ func main() {
 	r.HandleFunc("/api/books/{id}", updateBook).Methods("PUT")
 	r.HandleFunc("/api/books/{id}", deleteBook).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":1337", r))
 
 }
