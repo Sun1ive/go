@@ -15,8 +15,8 @@ var err error
 
 type User struct {
 	gorm.Model
-	Name  string
-	Email string
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 func InitialMigration() {
@@ -28,6 +28,10 @@ func InitialMigration() {
 	defer db.Close()
 
 	db.AutoMigrate(&User{})
+}
+
+func setHeaders(res http.ResponseWriter) {
+	res.Header().Set("Content-Type", "application/json")
 }
 
 func connect() {
@@ -44,6 +48,7 @@ func GetUsers(res http.ResponseWriter, req *http.Request) {
 	var users []User
 	db.Find(&users)
 
+	setHeaders(res)
 	json.NewEncoder(res).Encode(users)
 }
 
@@ -57,6 +62,7 @@ func NewUser(res http.ResponseWriter, req *http.Request) {
 
 	db.Create(&User{Name: name, Email: email})
 
+	setHeaders(res)
 	fmt.Fprintf(res, "New user successfully created!")
 }
 
@@ -71,6 +77,7 @@ func DeleteUser(res http.ResponseWriter, req *http.Request) {
 	db.Where("name = ?", name).Find(&user)
 	db.Delete(&user)
 
+	setHeaders(res)
 	fmt.Fprintf(res, "User successfully Deleted")
 }
 
@@ -89,5 +96,6 @@ func UpdateUser(res http.ResponseWriter, req *http.Request) {
 
 	db.Save(&user)
 
+	setHeaders(res)
 	fmt.Fprintf(res, "Successfully updated")
 }
