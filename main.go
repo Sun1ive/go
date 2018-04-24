@@ -1,14 +1,32 @@
 package main
 
 import (
-	"../../Lessons/go/test"
+	"github.com/gorilla/mux"
+	"net/http"
+	"log"
+	"fmt"
 )
 
-func main() {
-	/* 	arr := []uint{1,2,3,4,5,6,7}
-	   	myarr := arr[0:2]
-	   	fmt.Println(myarr) */
+var NOTYET = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Not implemented!"))
+})
 
-	test.Count()
+func RouterHandlers(router *mux.Router)  {
+	router.Handle("/status", NOTYET).Methods("GET")
+	router.Handle("/products", NOTYET).Methods("GET")
+	router.Handle("/products/{slug}/feedback", NOTYET).Methods("POST")
+}
 
+func main()  {
+	router := mux.NewRouter()
+
+	RouterHandlers(router)
+
+	router.Handle("/", http.FileServer(http.Dir("./views/")))
+
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
+		http.FileServer(http.Dir("./static/"))))
+
+	fmt.Println("Server is running at port 8081")
+	log.Fatal(http.ListenAndServe(":8081", router))
 }
