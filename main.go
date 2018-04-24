@@ -6,6 +6,10 @@ import (
 	"log"
 	"fmt"
 	"encoding/json"
+	"github.com/gorilla/handlers"
+	"os"
+	"github.com/dgrijalva/jwt-go"
+	"time"
 )
 
 var NOTYET = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -61,24 +65,48 @@ var AddFeedBackHanlder = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	}
 })
 
+var mySigninKey = []byte("secret")
 
+type MyCustomClaims struct {
+	User string
+	Admin bool
+}
+
+var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter,
+	r *http.Request){
+	// Создаем новый токен
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"admin": true,
+		"name": "sunlive",
+		"nbf": time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+
+	// Подписываем токен нашим секретным ключем
+	tokenString, err := token.SignedString(mySigninKey)
+	if err != nil {
+		panic(err)
+	}
+
+	// Отдаем токен клиенту
+	w.Write([]byte(tokenString))
+})
 
 func RouterHandlers(router *mux.Router)  {
 	router.Handle("/status", StatusHandler).Methods("GET")
 	router.Handle("/products", ProductsHandler).Methods("GET")
 	router.Handle("/products/{slug}/feedback", AddFeedBackHanlder).Methods("POST")
+	router.Handle("/token", GetTokenHandler).Methods("GET")
 }
 
 func main()  {
 	router := mux.NewRouter()
-
 	RouterHandlers(router)
 
 	router.Handle("/", http.FileServer(http.Dir("./views/")))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
-		http.FileServer(http.Dir("./static/"))))
 
 	fmt.Println("Server is running at port 8081")
-	log.Fatal(http.ListenAndServe(":8081", router))
+	log.Fatal(http.ListenAndServe(":8081", handlers.LoggingHandler(os.Stdout, router)))
 }
