@@ -10,6 +10,7 @@ import (
 	"os"
 	"github.com/dgrijalva/jwt-go"
 	"time"
+	"github.com/auth0/go-jwt-middleware"
 )
 
 var NOTYET = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -67,11 +68,6 @@ var AddFeedBackHanlder = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 
 var mySigninKey = []byte("secret")
 
-type MyCustomClaims struct {
-	User string
-	Admin bool
-}
-
 var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter,
 	r *http.Request){
 	// Создаем новый токен
@@ -80,7 +76,6 @@ var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter,
 		"name": "sunlive",
 		"nbf": time.Now().Add(time.Hour * 24).Unix(),
 	})
-
 
 	// Подписываем токен нашим секретным ключем
 	tokenString, err := token.SignedString(mySigninKey)
@@ -92,8 +87,15 @@ var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter,
 	w.Write([]byte(tokenString))
 })
 
+var jwtMiddleWare = jwtmiddleware.New(jwtmiddleware.Options{
+	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
+		return mySigninKey, nil
+	},
+	SigningMethod: jwt.SigningMethodHS512,
+})
+
 func RouterHandlers(router *mux.Router)  {
-	router.Handle("/status", StatusHandler).Methods("GET")
+	router.Handle("/status", jwtMiddleWare.Handler(StatusHandler)).Methods("GET")
 	router.Handle("/products", ProductsHandler).Methods("GET")
 	router.Handle("/products/{slug}/feedback", AddFeedBackHanlder).Methods("POST")
 	router.Handle("/token", GetTokenHandler).Methods("GET")
